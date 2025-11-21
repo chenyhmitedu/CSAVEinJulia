@@ -1,4 +1,4 @@
-using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, GTAPdata
+using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, GTAPdata
 
 #using Pkg
 #Pkg.develop(path="E:/work/Projects/2025-01_Julia/CSVtoDIC")
@@ -11,7 +11,15 @@ for (k, v) in data
     @eval $(Symbol(k)) = $v
 end
 
-model_generation_time = @elapsed include("model.jl")
+# Declare Vector similar to set declaration in GAMS
+s_fe      = [:coa, :gas, :p_c]
+s_elec    = [:ely]
+s_ne      = setdiff(setdiff(set_i, set_fe), set_elec)
+s_tr      = [:wtp, :atp, :otp]
+
+#model_generation_time = @elapsed csave(s_fe, s_elec, s_ne, s_tr)
+model_generation_time = @benchmark csave(s_fe, s_elec, s_ne, s_tr)
+
 df1 = DataFrame(run = "MG", runtime = model_generation_time)
 
 solve!(MGE, cumulative_iteration_limit = 0)
@@ -19,14 +27,18 @@ benchmark = generate_report(MGE)
 #println(benchmark)
 
 solvetime = zeros(5)
+solvetime = Vector{BenchmarkTools.Trial}(undef, 5)
 n = length(solvetime)
+
 for t ∈ 1:n
     for i ∈ set_fe, g ∈ set_g
     set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*2*(t-1)/(n-1))
     set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*2*(t-1)/(n-1))
     end
-    solvetime[t] = @elapsed solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
+#    solvetime[t] = @elapsed solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
+    solvetime[t] = @benchmark solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
 end
+
 df2 = DataFrame(run = 1:length(solvetime), runtime = solvetime)
 
 df = vcat(df1, df2)
