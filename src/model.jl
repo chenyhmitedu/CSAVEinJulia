@@ -100,6 +100,6 @@ function csave(set_fe, set_elec, set_ne, set_tr)
 
     fix(P[:c, :USA], 1)
 
-    return MGE
+    return MGE, rtfd, rtfi
 
 end

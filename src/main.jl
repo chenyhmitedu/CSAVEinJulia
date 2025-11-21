@@ -17,25 +17,23 @@ s_elec    = [:ely]
 s_ne      = setdiff(setdiff(set_i, s_fe), s_elec)
 s_tr      = [:wtp, :atp, :otp]
 
-#model_generation_time = @elapsed csave(s_fe, s_elec, s_ne, s_tr)
+include("model.jl")
 model_generation_time = @benchmark csave(s_fe, s_elec, s_ne, s_tr)
 
 df1 = DataFrame(run = "MG", runtime = model_generation_time)
 
-solve!(MGE, cumulative_iteration_limit = 0)
-benchmark = generate_report(MGE)
-#println(benchmark)
+#solve!(MGE, cumulative_iteration_limit = 0)
+#baseline = generate_report(MGE)
 
-solvetime = zeros(5)
+MGE, rtfd, rtfi = csave(s_fe, s_elec, s_ne, s_tr)
 solvetime = Vector{BenchmarkTools.Trial}(undef, 5)
 n = length(solvetime)
 
 for t ∈ 1:n
-    for i ∈ set_fe, g ∈ set_g
+    for i ∈ s_fe, g ∈ set_g
     set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*2*(t-1)/(n-1))
     set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*2*(t-1)/(n-1))
     end
-#    solvetime[t] = @elapsed solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
     solvetime[t] = @benchmark solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
 end
 
