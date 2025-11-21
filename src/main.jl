@@ -14,7 +14,7 @@ end
 # Declare Vector similar to set declaration in GAMS
 s_fe      = [:coa, :gas, :p_c]
 s_elec    = [:ely]
-s_ne      = setdiff(setdiff(set_i, set_fe), set_elec)
+s_ne      = setdiff(setdiff(set_i, s_fe), s_elec)
 s_tr      = [:wtp, :atp, :otp]
 
 #model_generation_time = @elapsed csave(s_fe, s_elec, s_ne, s_tr)
