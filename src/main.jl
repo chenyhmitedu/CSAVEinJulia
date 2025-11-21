@@ -42,7 +42,6 @@ end
 df2 = DataFrame(run = 1:length(solvetime), runtime = solvetime)
 
 df = vcat(df1, df2)
-#println(df)
 
 path = joinpath(@__DIR__, "56x2_5.csv")
 CSV.write(path, df)
