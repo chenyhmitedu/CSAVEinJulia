@@ -1,9 +1,5 @@
 using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, GTAPdata
 
-#using Pkg
-#Pkg.develop(path="E:/work/Projects/2025-01_Julia/CSVtoDIC")
-#Pkg.develop(path="E:/work/Projects/2025-01_Julia/GTAPdata")
-
 io(joinpath(@__DIR__, "data"))
 
 data = load("./IO.jld2")    #k = keys(data)
@@ -18,7 +14,19 @@ s_ne      = setdiff(setdiff(set_i, s_fe), s_elec)
 s_tr      = [:wtp, :atp, :otp]
 
 include("model.jl")
-model_generation_time = @benchmark csave(s_fe, s_elec, s_ne, s_tr)
+
+# Define the Benchmark object: This step is simple and has no parameters to confuse the parser.
+b = @benchmarkable csave(s_fe, s_elec, s_ne, s_tr)
+
+# Access the parameters field and set values
+b.params.samples = 5
+b.params.evals = 2
+b.params.seconds = 180
+
+# Run the benchmark with the configured parameters
+model_generation_time = run(b)
+
+# model_generation_time = @benchmark csave(s_fe, s_elec, s_ne, s_tr) samples=5 evals=2 seconds=180
 
 df1 = DataFrame(run = "MG", runtime = model_generation_time)
 
@@ -26,13 +34,15 @@ df1 = DataFrame(run = "MG", runtime = model_generation_time)
 #baseline = generate_report(MGE)
 
 MGE, rtfd, rtfi = csave(s_fe, s_elec, s_ne, s_tr)
-solvetime = Vector{BenchmarkTools.Trial}(undef, 5)
+solvetime = Vector{BenchmarkTools.Trial}(undef, 1)
 n = length(solvetime)
 
 for t ∈ 1:n
     for i ∈ s_fe, g ∈ set_g
-    set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*2*(t-1)/(n-1))
-    set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*2*(t-1)/(n-1))
+#    set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*2*(t-1)/(n-1))
+#    set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*2*(t-1)/(n-1))
+    set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*1)
+    set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*1)
     end
     solvetime[t] = @benchmark solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
 end
@@ -41,7 +51,7 @@ df2 = DataFrame(run = 1:length(solvetime), runtime = solvetime)
 
 df = vcat(df1, df2)
 
-path = joinpath(@__DIR__, "56x2_5.csv")
+path = joinpath(@__DIR__, "56x2_base.csv")
 CSV.write(path, df)
 
 df_results = generate_report(MGE)
