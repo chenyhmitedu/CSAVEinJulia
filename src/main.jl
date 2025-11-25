@@ -1,5 +1,5 @@
 
-using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, CSVtoDIC, GTAPdata
+using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, GTAPdata
 
 io(joinpath(@__DIR__, "data"))
 
