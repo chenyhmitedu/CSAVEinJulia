@@ -1,8 +1,6 @@
-
-using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, GTAPdata
+using JuMP, Ipopt, MPSGE, JLD2, DataFrames, CSV, BenchmarkTools, GTAPdata, Makie, CairoMakie
 
 io(joinpath(@__DIR__, "data"))
-
 data = load("./IO.jld2")    #k = keys(data)
 for (k, v) in data
     @eval $(Symbol(k)) = $v
@@ -16,44 +14,30 @@ s_tr      = [:wtp, :atp, :otp]
 
 include("model.jl")
 
-# Define the Benchmark object: This step is simple and has no parameters to confuse the parser.
-b = @benchmarkable csave(s_fe, s_elec, s_ne, s_tr)
-
-# Access the parameters field and set values
-b.params.samples = 5
-b.params.evals = 2
-b.params.seconds = 180
-
-# Run the benchmark with the configured parameters
+# Define the Benchmark object
+b = @benchmarkable csave(s_fe, s_elec, s_ne, s_tr) samples = 10 evals = 1 seconds = 180
 model_generation_time = run(b)
 
-# model_generation_time = @benchmark csave(s_fe, s_elec, s_ne, s_tr) samples=5 evals=2 seconds=180
-
-df1 = DataFrame(run = "MG", runtime = model_generation_time)
+include("barchart.jl")
+figure = draw_barchart(model_generation_time,"Model Generation time")
+Makie.save("Distribution_for_model_generation_time.png", figure)
 
 #solve!(MGE, cumulative_iteration_limit = 0)
 #baseline = generate_report(MGE)
 
 MGE, rtfd, rtfi = csave(s_fe, s_elec, s_ne, s_tr)
-solvetime = Vector{BenchmarkTools.Trial}(undef, 1)
-n = length(solvetime)
 
-for t ∈ 1:n
-    for i ∈ s_fe, g ∈ set_g
-#    set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*2*(t-1)/(n-1))
-#    set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*2*(t-1)/(n-1))
+for i ∈ s_fe, g ∈ set_g
     set_value!(rtfd[i, g, :USA], rtfd0[i, g, :USA]*1)
     set_value!(rtfi[i, g, :USA], rtfi0[i, g, :USA]*1)
-    end
-    solvetime[t] = @benchmark solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
 end
 
-df2 = DataFrame(run = 1:length(solvetime), runtime = solvetime)
+b2 = @benchmarkable solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8) samples = 200 evals = 1 seconds = 1800
+solvetime = run(b2)    
 
-df = vcat(df1, df2)
-
-path = joinpath(@__DIR__, "56x2_base.csv")
-CSV.write(path, df)
+# Run the benchmark with the configured parameters
+figure = draw_barchart(solvetime,"Solve time")
+Makie.save("Distribution_for_solve_time.png", figure)
 
 df_results = generate_report(MGE)
 println(df_results)
