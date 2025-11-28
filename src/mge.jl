@@ -55,16 +55,16 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
         RA[r=set_r],              (description = "Representative agent")
     end)
 
-    for i ∈ set_i, g ∈ set_g, r ∈ set_r
-        @production(MGE, A[i, g, r], [t = 0, s = data["esubd"][i]], begin
+    #for i ∈ set_i, g ∈ set_g, r ∈ set_r
+        @production(MGE, A[i=set_i, g=set_g, r=set_r], [t = 0, s = data["esubd"][i]], begin
             @output(PA[i, g, r],    data["vafm"][i, g, r],  t)
             @input(P[i, r],         data["vdfm"][i, g, r],  s,   taxes = [Tax(RA[r], rtfd[i, g, r])],   reference_price = 1 + data["rtfd0"][i, g, r])
             @input(PM[i, r],        data["vifm"][i, g, r],  s,   taxes = [Tax(RA[r], rtfi[i, g, r])],   reference_price = 1 + data["rtfi0"][i, g, r])  
         end)
-    end
+    #end
 
-    for g ∈ set_i, r ∈ set_r
-        @production(MGE, Y[g, r], [t = data["etadx"][g], s = data["esub"][g], sn => s = data["esubn"][g], sve => sn = data["esubve"][g], sva => sve = data["esubva"][g], sef => sve = data["esubef"][g], sf => sef = data["esubf"][g]], begin
+    #for g ∈ set_i, r ∈ set_r
+        @production(MGE, Y[g=set_i, r=set_r], [t = data["etadx"][g], s = data["esub"][g], sn => s = data["esubn"][g], sve => sn = data["esubve"][g], sva => sve = data["esubva"][g], sef => sve = data["esubef"][g], sf => sef = data["esubf"][g]], begin
             @output(P[g, r],        data["vhm"][g, r], t, taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])
             @output(PE[g, r],       data["vxm"][g, r], t, taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])    
             @input(PA[i=set_fe, g, r],    data["vafm"][i, g, r], sf)
@@ -73,7 +73,7 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
             @input(PS[sf=set_sf, g, r],   data["vfm"][sf, g, r],  s, taxes = [Tax(RA[r], rtf[sf, g, r])],   reference_price = 1 + data["rtf0"][sf, g, r])    
             @input(PF[mf=set_mf, r],      data["vfm"][mf, g, r],  sva, taxes = [Tax(RA[r], rtf[mf, g, r])],   reference_price = 1 + data["rtf0"][mf, g, r])    
         end)
-    end
+    #end
 
     for g ∈ set_cgi, r ∈ set_r
         @production(MGE, Y[g, r], [t = 0, s = data["esub"][g], sn => s = data["esubn"][g], sef => sn = data["esubef"][g], sf => sef = data["esubf"][g]], begin
@@ -84,32 +84,32 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
         end)
     end
 
-    for j ∈ set_i
-        @production(MGE, YT[j], [t = 0, s = 1], begin
+    #for j ∈ set_i
+        @production(MGE, YT[j=set_i], [t = 0, s = 1], begin
             @output(PT[j],          data["vtw"][j],         t)
             @input(PE[j, r=set_r],       data["vst"][j, r],      s)
         end)
-    end
+    #end
 
-    for i ∈ set_i, r ∈ set_r
-        @production(MGE, M[i, r], [t = 0, s = data["esubm"][i]], begin
+    #for i ∈ set_i, r ∈ set_r
+        @production(MGE, M[i=set_i, r=set_r], [t = 0, s = data["esubm"][i]], begin
             @output(PM[i, r],       data["vim"][i, r],      t)
             @input(PX[i, s=set_r, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), s, taxes = [Tax(RA[r], rtms[i, s, r])], reference_price = data["pvtwr"][i, s, r])
         end)
-    end
+    #end
 
     # vxmr = Dict((i, s, r) => vxmd[i, s, r]*(1 - rtxs0[i, s, r]) + sum(vtwr[j, i, s, r] for j ∈ set_tr)
 
-    for i ∈ set_i, s ∈ set_r, r ∈ set_r
-        @production(MGE, E[i, s, r], [t = 0, s = 0], begin
+    #for i ∈ set_i, s ∈ set_r, r ∈ set_r
+        @production(MGE, E[i=set_i, s=set_r, r=set_r], [t = 0, s = 0], begin
             @output(PX[i, s, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), t)
             @input(PE[i, s],        data["vxmd"][i, s, r], s,   taxes = [Tax(RA[s], -rtxs[i, s, r])],   reference_price = 1 - data["rtxs0"][i, s, r])
             @input(PT[j=set_i],          data["vtwr"][j, i, s, r], s)
         end)
-    end
+    #end
 
-    for r ∈ set_r 
-        @demand(MGE, RA[r], begin
+    #for r ∈ set_r 
+        @demand(MGE, RA[r=set_r], begin
             @final_demand(P[:c, r],     data["vom"][:c, r])
             @endowment(P[:c, :USA],     data["vb"][r])
             @endowment(P[:g, r],        -data["vom"][:g, r])
@@ -117,7 +117,7 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
             @endowment(PF[f=set_mf, r],       data["evom"][f, r])
             @endowment(PS[f=set_sf, j=set_i, r],    data["vfm"][f, j, r])
         end)
-    end
+    #end
 
     fix(P[:c, :USA], 1)
 
@@ -125,4 +125,3 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
 
 end
 
-export csave
