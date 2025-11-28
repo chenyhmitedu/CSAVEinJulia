@@ -67,34 +67,34 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
         @production(MGE, Y[g, r], [t = data["etadx"][g], s = data["esub"][g], sn => s = data["esubn"][g], sve => sn = data["esubve"][g], sva => sve = data["esubva"][g], sef => sve = data["esubef"][g], sf => sef = data["esubf"][g]], begin
             @output(P[g, r],        data["vhm"][g, r], t, taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])
             @output(PE[g, r],       data["vxm"][g, r], t, taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])    
-            [@input(PA[i, g, r],    data["vafm"][i, g, r], sf) for i ∈ set_fe]...
-            [@input(PA[i, g, r],    data["vafm"][i, g, r], sef) for i ∈ set_elec]...
-            [@input(PA[i, g, r],    data["vafm"][i, g, r], sn) for i ∈ set_ne]...
-            [@input(PS[sf, g, r],   data["vfm"][sf, g, r],  s, taxes = [Tax(RA[r], rtf[sf, g, r])],   reference_price = 1 + data["rtf0"][sf, g, r])   for sf ∈ set_sf]...    
-            [@input(PF[mf, r],      data["vfm"][mf, g, r],  sva, taxes = [Tax(RA[r], rtf[mf, g, r])],   reference_price = 1 + data["rtf0"][mf, g, r])   for mf ∈ set_mf]...    
+            @input(PA[i=set_fe, g, r],    data["vafm"][i, g, r], sf)
+            @input(PA[i=set_elec, g, r],    data["vafm"][i, g, r], sef)
+            @input(PA[i=set_ne, g, r],    data["vafm"][i, g, r], sn)
+            @input(PS[sf=set_sf, g, r],   data["vfm"][sf, g, r],  s, taxes = [Tax(RA[r], rtf[sf, g, r])],   reference_price = 1 + data["rtf0"][sf, g, r])    
+            @input(PF[mf=set_mf, r],      data["vfm"][mf, g, r],  sva, taxes = [Tax(RA[r], rtf[mf, g, r])],   reference_price = 1 + data["rtf0"][mf, g, r])    
         end)
     end
 
     for g ∈ set_cgi, r ∈ set_r
         @production(MGE, Y[g, r], [t = 0, s = data["esub"][g], sn => s = data["esubn"][g], sef => sn = data["esubef"][g], sf => sef = data["esubf"][g]], begin
             @output(P[g, r],        data["vom"][g, r], t, taxes = [Tax(RA[r], rto[g, r])])
-            [@input(PA[i, g, r],     data["vafm"][i, g, r], sf) for i ∈ set_fe]...
-            [@input(PA[i, g, r],     data["vafm"][i, g, r], sef) for i ∈ set_elec]...
-            [@input(PA[i, g, r],     data["vafm"][i, g, r], sn) for i ∈ set_ne]...
+            @input(PA[i=set_fe, g, r],     data["vafm"][i, g, r], sf)
+            @input(PA[i=set_elec, g, r],     data["vafm"][i, g, r], sef)
+            @input(PA[i=set_ne, g, r],     data["vafm"][i, g, r], sn)
         end)
     end
 
     for j ∈ set_i
         @production(MGE, YT[j], [t = 0, s = 1], begin
             @output(PT[j],          data["vtw"][j],         t)
-            [@input(PE[j, r],       data["vst"][j, r],      s)   for r ∈ set_r]...
+            @input(PE[j, r=set_r],       data["vst"][j, r],      s)
         end)
     end
 
     for i ∈ set_i, r ∈ set_r
         @production(MGE, M[i, r], [t = 0, s = data["esubm"][i]], begin
             @output(PM[i, r],       data["vim"][i, r],      t)
-            [@input(PX[i, s, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), s, taxes = [Tax(RA[r], rtms[i, s, r])], reference_price = data["pvtwr"][i, s, r]) for s ∈ set_r]...
+            @input(PX[i, s=set_r, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), s, taxes = [Tax(RA[r], rtms[i, s, r])], reference_price = data["pvtwr"][i, s, r])
         end)
     end
 
@@ -102,9 +102,9 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
 
     for i ∈ set_i, s ∈ set_r, r ∈ set_r
         @production(MGE, E[i, s, r], [t = 0, s = 0], begin
-            [@output(PX[i, s, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), t)]...
+            @output(PX[i, s, r], data["vxmd"][i, s, r]*(1 - data["rtxs0"][i, s, r]) + sum(data["vtwr"][j, i, s, r] for j ∈ set_tr), t)
             @input(PE[i, s],        data["vxmd"][i, s, r], s,   taxes = [Tax(RA[s], -rtxs[i, s, r])],   reference_price = 1 - data["rtxs0"][i, s, r])
-            [@input(PT[j],          data["vtwr"][j, i, s, r], s) for j ∈ set_i]...
+            @input(PT[j=set_i],          data["vtwr"][j, i, s, r], s)
         end)
     end
 
@@ -114,8 +114,8 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
             @endowment(P[:c, :USA],     data["vb"][r])
             @endowment(P[:g, r],        -data["vom"][:g, r])
             @endowment(P[:i, r],        -data["vom"][:i, r])
-            [@endowment(PF[f, r],       data["evom"][f, r]) for f ∈ set_mf]...
-            [@endowment(PS[f, j, r],    data["vfm"][f, j, r]) for f ∈ set_sf, j ∈ set_i]...
+            @endowment(PF[f=set_mf, r],       data["evom"][f, r])
+            @endowment(PS[f=set_sf, j=set_i, r],    data["vfm"][f, j, r])
         end)
     end
 
