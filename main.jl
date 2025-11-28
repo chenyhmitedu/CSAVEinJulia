@@ -10,7 +10,11 @@ using CSV
 MGE, mge_data = MGE_model();
 
 solve!(MGE, cumulative_iteration_limit = 0)
-benchmark = generate_report(MGE)
+df_calib = generate_report(MGE)
+
+df_calib = df_calib[df_calib.margin .> 0.001, :]
+println(df_calib)
+
 set_silent(MGE)
 
 
