@@ -75,14 +75,14 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
         end)
     #end
 
-    for g ∈ set_cgi, r ∈ set_r
-        @production(MGE, Y[g, r], [t = 0, s = data["esub"][g], sn => s = data["esubn"][g], sef => sn = data["esubef"][g], sf => sef = data["esubf"][g]], begin
+    #for g ∈ set_cgi, r ∈ set_r
+        @production(MGE, Y[g=set_cgi, r=set_r], [t = 0, s = data["esub"][g], sn => s = data["esubn"][g], sef => sn = data["esubef"][g], sf => sef = data["esubf"][g]], begin
             @output(P[g, r],        data["vom"][g, r], t, taxes = [Tax(RA[r], rto[g, r])])
             @input(PA[i=set_fe, g, r],     data["vafm"][i, g, r], sf)
             @input(PA[i=set_elec, g, r],     data["vafm"][i, g, r], sef)
             @input(PA[i=set_ne, g, r],     data["vafm"][i, g, r], sn)
         end)
-    end
+    #end
 
     #for j ∈ set_i
         @production(MGE, YT[j=set_i], [t = 0, s = 1], begin
