@@ -8,18 +8,14 @@ using CSAVEinJulia
 using DataFrames
 using MPSGE
 using CSV
-using JLD2
-using GTAPdata
 
-GTAPdata.io(joinpath(@__DIR__, "src", "data"), joinpath(@__DIR__, "src","IO.jld2"))
-data = load("./src/IO.jld2")    
+data = load_gtap_data()
 
 # Vectors below may be changed depending on the sectoral names and resolution
 data["set_fe"]      = [:coa, :gas, :p_c]
 data["set_elec"]    = [:ely]
 data["set_ne"]      = setdiff(data["set_i"], union(data["set_fe"], data["set_elec"]))
 data["set_tr"]      = [:wtp, :atp, :otp]
-
 
 MGE = MGE_model(data);
 
