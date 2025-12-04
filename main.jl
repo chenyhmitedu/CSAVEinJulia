@@ -5,6 +5,7 @@ Pkg.instantiate()
 using CSAVEinJulia
 using DataFrames
 using MPSGE
+using JuMP
 
 
 MGE, mge_data = MGE_model();
@@ -13,6 +14,54 @@ solve!(MGE, cumulative_iteration_limit = 0)
 benchmark = generate_report(MGE)
 #println(benchmark)
 set_silent(MGE)
+
+
+M,data = MGE_model_();
+solve!(M, cumulative_iteration_limit = 0)
+
+
+df = generate_report(MGE)
+
+df |>
+    x -> subset(x,
+        :margin => ByRow(y -> abs(y) > 1e-6)
+    )
+
+
+df2 = generate_report(M)
+
+df2 |>
+    x -> subset(x,
+        :margin => ByRow(y -> abs(y) > 1)
+    )
+
+
+
+
+production(MGE[:Y][:c, :USA])
+
+production(M[:Y][:c, :USA])
+
+
+antijoin(
+    df2 |>
+        x -> transform(x,
+            :var => ByRow(JuMP.name) => :var
+        ),
+
+    df |>
+        x -> transform(x,
+            :var => ByRow(JuMP.name) => :var
+        ),
+    
+    
+    on = :var
+)
+
+
+
+mge_data["set_cgi"]
+
 
 
 df = DataFrame(run = Int[], runtime = Float64[])
