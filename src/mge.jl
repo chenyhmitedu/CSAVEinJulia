@@ -1,13 +1,4 @@
-function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
-
-    data = load(data_path)    #k = keys(data)
-
-    # Declare Vector similar to set declaration in GAMS
-    data["set_fe"]      = [:coa, :gas, :p_c]
-    data["set_elec"]    = [:ely]
-    data["set_ne"]      = setdiff(data["set_i"], union(data["set_fe"], data["set_elec"]))
-    data["set_tr"]      = [:wtp, :atp, :otp]
-
+function MGE_model(data::Dict)
 
     set_i      = data["set_i"]
     set_g      = data["set_g"]
@@ -20,7 +11,6 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
     set_ne     = data["set_ne"]
     set_tr     = data["set_tr"]
     set_cgi   = data["set_cgi"]
-    
 
     MGE  = MPSGEModel()
 
@@ -112,7 +102,7 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
 
     fix(P[:c, :USA], 1)
 
-
-    return MGE, data
+    return MGE
 
 end
+
