@@ -36,34 +36,6 @@ df2 |>
     )
 
 
-
-
-production(MGE[:Y][:c, :USA])
-
-production(M[:Y][:c, :USA])
-
-
-antijoin(
-    df2 |>
-        x -> transform(x,
-            :var => ByRow(JuMP.name) => :var
-        ),
-
-    df |>
-        x -> transform(x,
-            :var => ByRow(JuMP.name) => :var
-        ),
-    
-    
-    on = :var
-)
-
-
-
-mge_data["set_cgi"]
-
-
-
 df = DataFrame(run = Int[], runtime = Float64[])
 N = 5
 for t ∈ 1:N
