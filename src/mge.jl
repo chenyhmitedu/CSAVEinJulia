@@ -91,7 +91,7 @@ function MGE_model(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
 
     @production(MGE, M[i = set_i, r = set_r], [t = 0, s = data["esubm"][i]], begin
         @output(PM[i, r],           data["vim"][i, r],      t)
-        @input(PX[i, s = set_r, r], data["vxmr"][i, s, r], taxes = [Tax(RA[r], rtms[i, s, r])], reference_price = data["pvtwr"][i, s, r])
+        @input(PX[i, s = set_r, r], data["vxmr"][i, s, r], s, taxes = [Tax(RA[r], rtms[i, s, r])], reference_price = data["pvtwr"][i, s, r])
     end)
     
     @production(MGE, E[i = set_i, s = set_r, r = set_r], [t = 0, s = 0], begin
