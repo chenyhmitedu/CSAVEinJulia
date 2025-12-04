@@ -1,4 +1,13 @@
-function MGE_model(data::Dict)
+function MGE_model_(; data_path::String = joinpath(@__DIR__, "IO.jld2"))
+
+    data = load(data_path)    #k = keys(data)
+
+    # Declare Vector similar to set declaration in GAMS
+    data["set_fe"]      = [:coa, :gas, :p_c]
+    data["set_elec"]    = [:ely]
+    data["set_ne"]      = setdiff(data["set_i"], union(data["set_fe"], data["set_elec"]))
+    data["set_tr"]      = [:wtp, :atp, :otp]
+
 
     set_i      = data["set_i"]
     set_g      = data["set_g"]
@@ -11,6 +20,7 @@ function MGE_model(data::Dict)
     set_ne     = data["set_ne"]
     set_tr     = data["set_tr"]
     set_cgi   = data["set_cgi"]
+    
 
     MGE  = MPSGEModel()
 
@@ -20,7 +30,7 @@ function MGE_model(data::Dict)
         rtms[i=set_i, r=set_r, s=set_r],    data["rtms0"][i, r, s], (description = "Import tax rates")
         rtxs[i=set_i, r=set_r, s=set_r],    data["rtxs0"][i, r, s], (description = "Export subsidy rates")
         rto[g=set_g, r=set_r],              data["rto0"][g, r],     (description = "Output subsidy rates")              
-        rtf[f=set_f, i=set_i, r=set_r],     data["rtf0"][f, i, r],  (description = "Primary factor tax rates")
+        rtf[f=set_f, i=set_g, r=set_r],     data["rtf0"][f, i, r],  (description = "Primary factor tax rates")
     end)
 
     @sectors(MGE, begin
@@ -39,7 +49,7 @@ function MGE_model(data::Dict)
         PS[sf=set_sf, g=set_g, r=set_r], (description = "Sector-specific primary factor rent")  
         PX[i=set_i, r=set_r, s=set_r],   (description = "Price index for exports (include subsidy and transport service)")
         PA[i=set_i, g=set_g, r=set_r],   (description = "Price index for Armington good")
-        PE[i=set_i, r=set_r],            (description = "Price index for exports (exclude subsidy and transport service)")
+        PE[i=set_g, r=set_r],            (description = "Price index for exports (exclude subsidy and transport service)")
     end)
 
     @consumers(MGE, begin
@@ -52,21 +62,23 @@ function MGE_model(data::Dict)
         @input(PM[i, r],        data["vifm"][i, g, r],  s,   taxes = [Tax(RA[r], rtfi[i, g, r])],   reference_price = 1 + data["rtfi0"][i, g, r])  
     end)
 
-    @production(MGE, Y[g = set_i, r = set_r], [t = data["etadx"][g], s = data["esub"][g], sn => s = data["esubn"][g], sve => sn = data["esubve"][g], sva => sve = data["esubva"][g], sef => sve = data["esubef"][g], sf => sef = data["esubf"][g]], begin
-        @output(P[g, r],               data["vhm"][g, r],      t,  taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])
-        @output(PE[g, r],              data["vxm"][g, r],      t,  taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])    
+    for g∈set_cgi
+        data["etadx"][g] = 0
+        data["esubve"][g] = 0
+        for r∈set_r
+            data["vhm"][g, r] = 0
+            data["vxm"][g, r] = 0
+        end
+    end
+
+    @production(MGE, Y[g = set_g, r = set_r], [t = data["etadx"][g], s = data["esub"][g], sn => s = data["esubn"][g], sve => sn = data["esubve"][g], sva => sve = data["esubva"][g], sef => sve = data["esubef"][g], sf => sef = data["esubf"][g]], begin
+        @output(P[g, r],               ifelse(g∈set_i, data["vhm"][g, r], data["vom"][g,r]),      t,  taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])
+        @output(PE[g, r],              data["vxm"][g, r],                     t,  taxes = [Tax(RA[r], rto[g, r])], reference_price = 1-data["rto0"][g, r])    
         @input(PA[i = set_fe, g, r],   data["vafm"][i, g, r], sf)
         @input(PA[i = set_elec, g, r], data["vafm"][i, g, r], sef) 
         @input(PA[i = set_ne, g, r],   data["vafm"][i, g, r], sn) 
         @input(PS[sf = set_sf, g, r],  data["vfm"][sf, g, r],  s,   taxes = [Tax(RA[r], rtf[sf, g, r])],   reference_price = 1 + data["rtf0"][sf, g, r])   
-        @input(PF[mf = set_mf, r],     data["vfm"][mf, g, r],  sva, taxes = [Tax(RA[r], rtf[mf, g, r])],   reference_price = 1 + data["rtf0"][mf, g, r])   
-    end)
-
-    @production(MGE, Y[g = set_cgi, r=set_r], [t = 0, s = data["esub"][g], sn => s = data["esubn"][g], sef => sn = data["esubef"][g], sf => sef = data["esubf"][g]], begin
-        @output(P[g, r],               data["vom"][g, r], t, taxes = [Tax(RA[r], rto[g, r])])
-        @input(PA[i = set_fe, g, r],   data["vafm"][i, g, r], sf)
-        @input(PA[i = set_elec, g, r], data["vafm"][i, g, r], sef)
-        @input(PA[i = set_ne, g, r],   data["vafm"][i, g, r], sn)
+        @input(PF[mf = set_mf, r],     data["vfm"][mf, g, r],  sva, taxes = [Tax(RA[r], rtf[mf, g, r])],   reference_price = 1 + data["rtf0"][mf, g, r])
     end)
     
     @production(MGE, YT[j = set_i], [t = 0, s = 1], begin
@@ -102,7 +114,7 @@ function MGE_model(data::Dict)
 
     fix(P[:c, :USA], 1)
 
-    return MGE
+
+    return MGE, data
 
 end
-

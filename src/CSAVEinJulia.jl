@@ -11,4 +11,7 @@ module CSAVEinJulia
     include("mge.jl")
     export MGE_model
 
+    include("model.jl")
+    export MGE_model_
+
 end

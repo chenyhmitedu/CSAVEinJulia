@@ -28,6 +28,26 @@ println(df_calib)
 set_silent(MGE)
 
 
+M,data = MGE_model_();
+solve!(M, cumulative_iteration_limit = 0)
+
+
+df = generate_report(MGE)
+
+df |>
+    x -> subset(x,
+        :margin => ByRow(y -> abs(y) > 1e-6)
+    )
+
+
+df2 = generate_report(M)
+
+df2 |>
+    x -> subset(x,
+        :margin => ByRow(y -> abs(y) > 1)
+    )
+
+
 df = DataFrame(run = Int[], runtime = Float64[])
 N = 5
 for t ∈ 1:N
