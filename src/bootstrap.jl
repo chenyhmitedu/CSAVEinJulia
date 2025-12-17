@@ -1,5 +1,4 @@
 using Pkg
-Pkg.add("StatsBase")
 using CSVtoDIC
 using DataFrames
 using StatsBase # Needed for median and sampling
@@ -9,12 +8,16 @@ rdata   = joinpath(@__DIR__, "runtime")
 # "source" in CSVtoDIC returns "d (dictionary) and s(vector)." But each time one of them will be empty, depending on how many columns each CSV file has.
 # In here, each CSV file only has one column, and so d is empty, and s stores the data needed. d and s can be accessed by v[1] and v[2], respectively.
 v       = CSVtoDIC.source(rdata)
-rt      = Dict()
-merge!(rt, v[2])
+#rt      = Dict()
+#merge!(rt, v[2])
+rt      = v[2]
 rt      = Dict(k => parse.(Float64, String.(v)) for (k, v) in rt)
 
-X1 = rt["mg_gams_56x2"]
-X2 = rt["mg_julia_56x2"]
+#X1 = rt["mg_gams_56x2"]
+#X2 = rt["mg_julia_56x2"]
+
+X1 = rt["56x2_1000_sol_time-warm"]
+X2 = rt["56x2_1000_sol_time_slow2-warm"]
 
 # 2. Bootstrap Setup
 B = 10_000 # Number of bootstrap iterations
@@ -36,8 +39,9 @@ for i in 1:B
 end
 
 # 4. Construct the Confidence Interval (e.g., 95% CI)
-# The CI is the 2.5th and 97.5th percentiles of the bootstrap distribution
 CI_lower = quantile(bootstrap_differences, 0.025)
 CI_upper = quantile(bootstrap_differences, 0.975)
 
 println("95% CI for Median Difference: [$(CI_lower), $(CI_upper)]")
+include("figure_histogram.jl")
+include("figure_CI.jl")

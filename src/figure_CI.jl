@@ -1,19 +1,17 @@
 using Plots
 using Measures
 pyplot() # Using PyPlot for reliable rendering
-using Printf 
 
 # --------------------------------------------------
-# 1. Input Data 
+# 1. Input Data
 # --------------------------------------------------
-CI_lower = -0.035690857500000055
-CI_upper = -0.022883297499999997
 
-# Point Estimate
+# Point Estimate (Calculated as the midpoint for visualization)
 POINT_ESTIMATE = (CI_lower + CI_upper) / 2 
 
-# The name/label for the comparison (REINTRODUCED)
-COMPARISON_LABEL = "Median Difference" 
+# The name/label for the comparison
+#COMPARISON_LABEL = "jMedian Difference (CGE wrapped - CGE unwrapped)"
+
 # --------------------------------------------------
 
 # --------------------------------------------------
@@ -50,7 +48,8 @@ p = plot(
     yformatter = _ -> "",               # Keep Y-axis tick numbers hidden
     
     # RESTORED: Show the comparison label on the Y-axis tick
-    yticks=([Y_POSITION], [COMPARISON_LABEL]), 
+    #yticks=([Y_POSITION], [COMPARISON_LABEL]), 
+    yticks=([Y_POSITION]), 
     
     # ADDED: Set the font size for the label restored via yticks
     ytickfont=font(10, :black),
@@ -59,7 +58,7 @@ p = plot(
     grid=false,
     
     # Font and size settings
-    size=(900, 500), 
+    size=(900, 400), 
     margin=5mm,
     titlefont=font(14),
     xguidefont=font(10),
@@ -89,6 +88,6 @@ annotate!(CI_lower, Y_POSITION + 0.15, text(@sprintf("%.3f", CI_lower), 10, :red
 annotate!(CI_upper, Y_POSITION + 0.15, text(@sprintf("%.3f", CI_upper), 10, :red, :right))
 
 display(p)
-
-# Example save path 
-# savefig(p, "median_ci_labeled.png")
+# Save the figure
+fig_path = joinpath(@__DIR__, "./figures/", "median_ci_dotplot.png")
+savefig(p, fig_path)
