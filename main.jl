@@ -1,8 +1,21 @@
 using Pkg
+
+Pkg.add("CSV")
+Pkg.add("JLD2")
+Pkg.add("MPSGE")
 Pkg.add(url="https://github.com/chenyhmitedu/CSVtoDIC")
 Pkg.add(url="https://github.com/chenyhmitedu/GTAPdata")
+Pkg.add("DataFrames")
+Pkg.add("StatsBase")
+Pkg.add("Plots")
+Pkg.add("PyPlot")
+Pkg.add("StatsBase")
+Pkg.add("Printf")
+Pkg.add("Measures")
+Pkg.add("Distributions")
 Pkg.add("BenchmarkTools")
 Pkg.add("PATHSolver")
+
 Pkg.activate(".")
 Pkg.instantiate()
 
@@ -69,7 +82,7 @@ model_sol = run(sol)
 sol_times_seconds = model_sol.times ./ 1_000_000_000
 df_sol_time = DataFrame(:sec => sol_times_seconds)
 
-path = joinpath(@__DIR__, "src/results/", "56x2_1000_sol_time-1.csv")
+path = joinpath(@__DIR__, "src/results/", "56x2_1000_sol_time.csv")
 CSV.write(path, df_sol_time)
 
 df_sol_time = generate_report(MGE)
