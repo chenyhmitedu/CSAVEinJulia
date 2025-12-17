@@ -43,5 +43,9 @@ CI_lower = quantile(bootstrap_differences, 0.025)
 CI_upper = quantile(bootstrap_differences, 0.975)
 
 println("95% CI for Median Difference: [$(CI_lower), $(CI_upper)]")
+
 include("figure_histogram.jl")
+fig_hist(X1, X2, "wrapped_vs_not_wrapped.png")
+
 include("figure_CI.jl")
+fig_ci(CI_lower, CI_upper, "median_ci_dotplot.png")

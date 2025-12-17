@@ -1,5 +1,6 @@
 using Pkg
 
+#=
 Pkg.add("CSV")
 Pkg.add("JLD2")
 Pkg.add("MPSGE")
@@ -15,6 +16,7 @@ Pkg.add("Measures")
 Pkg.add("Distributions")
 Pkg.add("BenchmarkTools")
 Pkg.add("PATHSolver")
+=#
 
 Pkg.activate(".")
 Pkg.instantiate()
