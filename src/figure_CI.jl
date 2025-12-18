@@ -2,7 +2,7 @@ using Plots
 using Measures
 pyplot() # Using PyPlot for reliable rendering
 
-function fig_ci(CI_lower::Float64, CI_upper::Float64, figname::String)
+function fig_ci(CI_lower::Float64, CI_upper::Float64)
     # --------------------------------------------------
     # 1. Input Data
     # --------------------------------------------------
@@ -90,7 +90,6 @@ function fig_ci(CI_lower::Float64, CI_upper::Float64, figname::String)
 
     display(p)
     # Save the figure
-    fig_path = joinpath(@__DIR__, "./figures/", figname)
-    savefig(p, fig_path)
+    return p
 
 end

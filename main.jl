@@ -95,6 +95,22 @@ pf = value.(MGE[:PF]) #Can just extract the one wanted variable this way
 df_filtered = df[df.margin .> 0.001, :]
 println(df_filtered)
 
+# Bootstrap run time difference and produce figures
+# "wrapped_vs_not_wrapped.png"
+# "median_ci_dotplot.png"
+# bstrap(d1::String, d2::String, fh::String, fc::String)
+include("./src/bootstrap.jl")
+b = bstrap("56x2_1000_sol_time", "56x2_1000_sol_time_slow2")
+
+include("./src/figure_histogram.jl")
+hist_plot = fig_hist(b[1], b[2])
+fig_hist_path = joinpath(@__DIR__, "./src/figures/", "wrapped_vs_not_wrapped.png")
+savefig(hist_plot, fig_hist_path)
+
+include("./src/figure_CI.jl")
+ci_plot = fig_ci(b[3], b[4])
+fig_ci_path = joinpath(@__DIR__, "./src/figures/", "median_ci_dotplot.png")
+savefig(ci_plot, fig_ci_path)
 
 
 

@@ -5,7 +5,7 @@ using Measures # Provides units like 'mm'
 using Distributions # Needed for generating skewed sample data
 pyplot() # Using PyPlot backend
     
-function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64}, figname::String)
+function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64})
     # --------------------------------------------------
 
     # --------------------------------------------------
@@ -107,7 +107,6 @@ function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64}, figname::Str
     )
 
     display(final_plot)
-    fig_path = joinpath(@__DIR__, "./figures/", figname)
-    savefig(final_plot, fig_path)
+    return final_plot
     
 end
