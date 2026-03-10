@@ -2,7 +2,7 @@ using Plots
 using Measures
 pyplot() # Using PyPlot for reliable rendering
 
-function fig_ci(CI_lower::Float64, CI_upper::Float64)
+function fig_ci(CI_lower::Float64, CI_upper::Float64, ti::String, x_min::Float64, x_max::Float64)
     # --------------------------------------------------
     # 1. Input Data
     # --------------------------------------------------
@@ -19,8 +19,8 @@ function fig_ci(CI_lower::Float64, CI_upper::Float64)
     # 2. Define Plot Parameters
     # --------------------------------------------------
     ZERO_LINE = 0.0
-    X_MIN = -0.04
-    X_MAX = 0.00 
+    X_MIN = x_min
+    X_MAX = x_max 
     Y_POSITION = 0.75
 
     # --------------------------------------------------
@@ -36,8 +36,8 @@ function fig_ci(CI_lower::Float64, CI_upper::Float64)
         linewidth=1.5,
 
         # --- 2. Set Overall Plot Attributes ---
-        title="95% Confidence Interval for Median Runtime Difference",
-        xlabel="Runtime Difference (Seconds)",
+        title=ti,
+        xlabel="Time Difference (Seconds)",
 
         xlims=(X_MIN, X_MAX),
 

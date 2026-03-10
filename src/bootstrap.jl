@@ -34,15 +34,16 @@ function bstrap(d1::String, d2::String)
         X2_star = sample(X2, n2, replace=true)
 
         # Calculate the statistic (difference in medians)
-        delta_star = median(X1_star) - median(X2_star)
+        delta_star = minimum(X1_star) - minimum(X2_star)
+        #delta_star = median(X1_star) - median(X2_star)
 
         # Append "delta_star" to the end of an array ("bootstrap_differences") one element at a time.
         push!(bootstrap_differences, delta_star)
     end
 
     # 4. Construct the Confidence Interval (e.g., 95% CI)
-    CI_lower = quantile(bootstrap_differences, 0.025)
-    CI_upper = quantile(bootstrap_differences, 0.975)
+    CI_lower = quantile(bootstrap_differences, 0.01)
+    CI_upper = quantile(bootstrap_differences, 0.99)
 
 #    println("95% CI for Median Difference: [$(CI_lower), $(CI_upper)]")
 

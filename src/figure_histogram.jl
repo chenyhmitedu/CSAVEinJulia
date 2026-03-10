@@ -5,7 +5,7 @@ using Measures # Provides units like 'mm'
 using Distributions # Needed for generating skewed sample data
 pyplot() # Using PyPlot backend
     
-function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64})
+function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64}, figname_1::String, figname_2::String , x_min::Float64, x_max::Float64, y_min::Float64, y_max::Float64, xlab_1="Time (sec)", xlab_2="Time (sec)")
     # --------------------------------------------------
 
     # --------------------------------------------------
@@ -66,14 +66,15 @@ function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64})
     # 4. Plot A
     # --------------------------------------------------
     p1 = histogram(data_A, bins=:auto, normalize=:probability,
-                   label=nothing, title="CGE wrapped in a function\n(sample size = 1000)",
-                   xlabel="Time (sec)", ylabel="Probability", fillcolor=:green,     # Set histogram bar color
+                   label=nothing, title=figname_1,
+                   xlabel=xlab_1, ylabel="Probability", fillcolor=:green,     # Set histogram bar color
                    size=(450,500),
                    xticks=false,
                    xguidefont=font(10), # Set font size for horizontal axis label
                    yguidefont=font(10), # Set font size for vertical axis label
                    ytickfont=font(10),  # Set font size for the y axis tick mark
-                   ylims = (0.0, 0.22)  # Set the range of y axis
+                   xlims = (x_min, x_max),  # Set the range of x axis
+                   ylims = (y_min, y_max)  # Set the range of y axis
                    )
 
     add_stat_arrows!(p1, stats_A)
@@ -82,14 +83,15 @@ function fig_hist(data_A::Vector{Float64}, data_B::Vector{Float64})
     # 5. Plot B
     # --------------------------------------------------
     p2 = histogram(data_B, bins=:auto, normalize=:probability,
-                   label=nothing, title="CGE not wrapped in a function\n(sample size = 1000)",
-                   xlabel="Time (sec)", ylabel="Probability", fillcolor=:orange,    # Set histogram bar color    
+                   label=nothing, title=figname_2,
+                   xlabel=xlab_2, ylabel="Probability", fillcolor=:orange,    # Set histogram bar color    
                    size=(450,500),
                    xticks=false,
                    xguidefont=font(10), # Set font size for horizontal axis label 
                    yguidefont=font(10), # Set font size for vertical axis label
                    ytickfont=font(10),  # Set font size for the y axis tick mark
-                   ylims = (0.0, 0.22)  # Set the range of y axis
+                   xlims = (x_min, x_max),  # Set the range of x axis
+                   ylims = (y_min, y_max)  # Set the range of y axis
                    )
 
     add_stat_arrows!(p2, stats_B)

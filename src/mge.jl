@@ -19,7 +19,7 @@ function MGE_model(data::Dict)
         rtfi[i=data["set_i"], g=data["set_g"], r=data["set_r"]],    data["rtfi0"][i, g, r], (description = "Firms' import tax rates")
         rtms[i=data["set_i"], r=data["set_r"], s=data["set_r"]],    data["rtms0"][i, r, s], (description = "Import tax rates")
         rtxs[i=data["set_i"], r=data["set_r"], s=data["set_r"]],    data["rtxs0"][i, r, s], (description = "Export subsidy rates")
-        rto[g=data["set_g"], r=data["set_r"]],              data["rto0"][g, r],     (description = "Output subsidy rates")              
+        rto[g=data["set_g"], r=data["set_r"]],                      data["rto0"][g, r],     (description = "Output subsidy rates")              
         rtf[f=data["set_f"], i=data["set_i"], r=data["set_r"]],     data["rtf0"][f, i, r],  (description = "Primary factor tax rates")
     end)
 

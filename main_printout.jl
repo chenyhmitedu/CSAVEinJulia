@@ -1,6 +1,5 @@
 using Pkg
 
-#=
 Pkg.add("CSV")
 Pkg.add("JLD2")
 Pkg.add("MPSGE")
@@ -16,7 +15,6 @@ Pkg.add("Measures")
 Pkg.add("Distributions")
 Pkg.add("BenchmarkTools")
 Pkg.add("PATHSolver")
-=#
 
 Pkg.activate(".")               # Selects which environment you are working in
 Pkg.instantiate()               # Installs the packages listed in that environment
@@ -52,40 +50,18 @@ CSV.write(path, df_sol_time)
 MGE = MGE_model(data);
 
 solve!(MGE, cumulative_iteration_limit = 0)
-#df_calib = generate_report(MGE)
-#df_calib = df_calib[df_calib.margin .> 0.001, :]
-#println(df_calib)
-#set_silent(MGE)
-
-#==
-df = DataFrame(run = Int[], runtime = Float64[])
-N = 30
-for t ∈ 1:N
-    for i ∈ data["set_fe"], g ∈ data["set_g"]
-        #set_value!(MGE[:rtfd][i, g, :USA], data["rtfd0"][i, g, :USA]*2*(t-1)/(N-1))
-        #set_value!(MGE[:rtfi][i, g, :USA], data["rtfi0"][i, g, :USA]*2*(t-1)/(N-1))
-        set_value!(MGE[:rtfd][i, g, :USA], data["rtfd0"][i, g, :USA]*2)
-        set_value!(MGE[:rtfi][i, g, :USA], data["rtfi0"][i, g, :USA]*2)
-    end
-    runtime = @elapsed solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8)
-    push!(df, (run = t, runtime = runtime))
-end
-println(df)
-==#
 
 for i ∈ data["set_fe"], g ∈ data["set_g"]
     set_value!(MGE[:rtfd][i, g, :USA], data["rtfd0"][i, g, :USA]*2)
     set_value!(MGE[:rtfi][i, g, :USA], data["rtfi0"][i, g, :USA]*2)
-    #set_value!(MGE[:rtfd][i, g, :USA], 0.1)
-    #set_value!(MGE[:rtfi][i, g, :USA], 0.1)
 end
 
-sol = @benchmarkable solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8) samples = 1000 evals = 1 seconds = 18000
+sol = @benchmarkable solve!(MGE; cumulative_iteration_limit = 1000, convergence_tolerance = 1e-8) samples = 1 evals = 1 seconds = 18000
 model_sol = run(sol)
 sol_times_seconds = model_sol.times ./ 1_000_000_000
 df_sol_time = DataFrame(:sec => sol_times_seconds)
 
-path = joinpath(@__DIR__, "src/results/", "56x2_1000_sol_time.csv")
+path = joinpath(@__DIR__, "src/results/", "56x2_sol_time.csv")
 CSV.write(path, df_sol_time)
 
 solve!(MGE, cumulative_iteration_limit = 1000)
@@ -94,8 +70,7 @@ df = generate_report(MGE)
 df_filtered = df[df.margin .> 0.001, :]
 println(df_filtered)
 
-#df_pf = filter(row -> startswith(string(row.var), "PF"), df)
-pf  = value.(MGE[:PF]) #Can just extract the one wanted variable this way
+pf  = value.(MGE[:PF])  #Can just extract the one wanted variable this way
 y   = value.(MGE[:Y])
 
 # Why Containers.rowtable is convenient: If one uses the built-in JuMP utility, there's no to worry about 
@@ -106,7 +81,6 @@ df_y = DataFrame(Containers.rowtable(y))
 output = "./src/results/output_y.csv"
 CSV.write(output, df_y)
 
-
 # Conducting bootstrap and producing figures: CGE wrapped in a function vs. CGE not wrapped
 # "CGE wrapped in a function\n(sample size = 1000)"
 # "CGE not wrapped in a function\n(sample size = 1000)"
@@ -115,12 +89,12 @@ include("./src/bootstrap.jl")
 b = bstrap("56x2_1000_sol_time", "56x2_1000_sol_time_slow2")
 
 include("./src/figure_histogram.jl")
-hist_plot = fig_hist(b[1], b[2], "Solving time for CGE wrapped in a function\n(sample size = 1000)", "Solving time for CGE not wrapped in a function\n(sample size = 1000)", 0.675, 2.1, 0.0, 0.18)
+hist_plot = fig_hist(b[1], b[2], "CGE wrapped in a function\n(sample size = 1000)", "CGE not wrapped in a function\n(sample size = 1000)", 0.675, 2.1, 0.0, 0.22)
 fig_hist_path = joinpath(@__DIR__, "./src/figures/", "wrapped_vs_not_wrapped.png")
 savefig(hist_plot, fig_hist_path)
 
 include("./src/figure_CI.jl")
-ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Runtime Difference", -0.1, 0.0)
+ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Runtime Difference", -0.04, 0.0)
 fig_ci_path = joinpath(@__DIR__, "./src/figures/", "median_ci_dotplot.png")
 savefig(ci_plot, fig_ci_path)
 
@@ -135,7 +109,7 @@ fig_hist_path = joinpath(@__DIR__, "./src/figures/", "mg_julia_gams.png")
 savefig(hist_plot, fig_hist_path)
 
 include("./src/figure_CI.jl")
-ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Model Generation Time Difference:\n Julia time minus GAMS time", 0.58, 0.61)
+ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Model Generation Time Difference:\n Julia time minus GAMS time", 0.56, 0.6)
 fig_ci_path = joinpath(@__DIR__, "./src/figures/", "mg_julia_gams_median_ci_dotplot.png")
 savefig(ci_plot, fig_ci_path)
 
@@ -150,25 +124,9 @@ fig_hist_path = joinpath(@__DIR__, "./src/figures/", "sol_julia_gams.png")
 savefig(hist_plot, fig_hist_path)
 
 include("./src/figure_CI.jl")
-ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Solve Time Difference:\n Julia time minus GAMS time", -5.8, -5.6)
+ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Solve Time Difference:\n Julia time minus GAMS time", -6.45, -6.35)
 fig_ci_path = joinpath(@__DIR__, "./src/figures/", "sol_julia_gams_median_ci_dotplot.png")
 savefig(ci_plot, fig_ci_path)
-
-# Conducting bootstrap and producing figures: Total time - Julia vs. GAMS 
-
-include("./src/bootstrap.jl")
-b = bstrap("56x2_1000_tot_time", "56x2_1000_GAMS_tot_time")
-
-include("./src/figure_histogram.jl")
-hist_plot = fig_hist(b[1], b[2], "Total time with 56x2 setting: Julia", "Total time with 56x2 setting: GAMS",0.0, 9.0, 0.0, 0.4,"","Time (sec)")
-fig_hist_path = joinpath(@__DIR__, "./src/figures/", "tot_julia_gams.png")
-savefig(hist_plot, fig_hist_path)
-
-include("./src/figure_CI.jl")
-ci_plot = fig_ci(b[3], b[4], "95% Confidence Interval for Median Total Time Difference:\n Julia time minus GAMS time", -5.8, -5.75)
-fig_ci_path = joinpath(@__DIR__, "./src/figures/", "tot_julia_gams_median_ci_dotplot.png")
-savefig(ci_plot, fig_ci_path)
-
 
 
 
