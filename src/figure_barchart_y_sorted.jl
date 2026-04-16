@@ -1,7 +1,6 @@
 using DataFrames, CSV, Plots, StatsPlots, Plots.Measures
 
-# 0. Load your data
-# Assuming your CSV has columns: Sector, USA, ROW
+# 0. Load data
 path_julia = joinpath(@__DIR__, "./results/", "output_y.csv")
 df_j = CSV.read(path_julia, DataFrame)
 
@@ -10,6 +9,8 @@ df_g = CSV.read(path_gams, DataFrame)
 
 # If output = 0 Julia reports output index = 0 while GAMS reports output index = 1. Fix GAMS output index to 0 here:
 
+sort!(df_j, :x1)
+sort!(df_g, :x1)
 
 for i ∈ 1: nrow(df_g)
     if df_g.y[i]  == 1.0 && df_j.y[i] == 0.0
@@ -18,7 +19,6 @@ for i ∈ 1: nrow(df_g)
         # Do nothing 
     end
 end
-
 
 # 1. Ensure the labels are Strings, not Symbols
 df_j.Sector = string.(df_j.x1) 
